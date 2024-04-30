@@ -1,0 +1,247 @@
+﻿@page
+@model Library_Management_System.Pages.Library.Member_ManageModel
+@{
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <button id="add_btn" type="button" data-toggle="modal" data-target=".AddEditModal" class="btn btn-success" value="Save">Add Member</button>
+        </div>
+    </div>
+
+    <br /><br />
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Member Table</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <table id="memberTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Member ID</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                            <th>Phone Number</th>
+                            <th>Registration Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <br /><br />
+
+</div>
+
+<div class="modal fade AddEditModal" tabindex="-1" id="AddEditModal" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-center" id="exampleModalLabel">Author Add/Edit </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <form>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstName">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastName">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Email</label>
+                                <input type="text" class="form-control" id="email">
+                            </div>
+                        </div>
+
+                    </div> <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Phone Number</label>
+                                <input type="text" class="form-control" id="phnNo">
+                            </div>
+                        </div>
+
+                    </div> <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Registration Date</label>
+                                <input type="date" class="form-control" id="regiDate">
+                            </div>
+                        </div>
+
+                    </div>
+                   
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button id="submit_btn" type="button" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type: 'GET',
+            url: 'https://localhost:7227/api/Library/GetAllMembers',
+            success: function (allMembersData) {
+                console.log(allMembersData);
+                allMembersData.forEach(function (member) {
+                    var row = '<tr>' +
+                        '<td>' + member.memberID + '</td>' +
+                        '<td>' + member.firstName + '</td>' +
+                        '<td>' + member.lastName + '</td>' +
+                        '<td>' + member.email + '</td>' +
+                        '<td>' + member.phoneNumber + '</td>' +
+                        '<td>' + member.registrationDate + '</td>' +
+                        '<td><button class="btn btn-primary edit-item" onclick = "edititem();">Edit</button><button class="btn btn-danger delete-item" id="dlt_btn" onclick = "deleteAuthor();">Delete</button></td>' +
+
+                        '</tr>';
+                    $('#memberTableBody').append(row);
+                });
+            },
+            error: function () { }
+        });
+        $('#add_btn').on('click', function () {
+            $('#firstName').val('');
+            $('#lastName').val('');
+            $('#email').val('');
+            $('#phnNo').val('');
+            $('#regiDate').val('');
+            $('#exampleModalLabel').text('Add Author');
+            $('#submit_btn').text('Save').off('click').on('click', function () {
+                createMember();
+            });
+            $('.AddEditModal').modal('show');
+        });
+
+
+    });
+    function createMember() {
+        var model = {
+            FirstName: $("#firstName").val(),
+            LastName: $("#lastName").val(),
+            Email: $("#email").val(),
+            PhoneNumber: $("#phnNo").val(),
+            RegistrationDate: $("#regiDate").val(),
+
+        };
+        console.log(model);
+        $.ajax({
+            type: 'POST',
+            url: 'https://localhost:7227/api/Library/CreateMember',
+            contentType: 'application/json',
+            data: JSON.stringify(model),
+            success: function (response) {
+                alert(response);
+                window.location.reload();
+                document.getElementById("postform").reset();
+            },
+            error: function (xhr, status, error) {
+                console.error(xhr.responseText);
+            }
+        });
+    }
+    function edititem() {
+        $("#memberTable").on('click', '.edit-item', function () {
+            var currentRow = $(this).closest("tr");
+            var memberId = currentRow.find("td:eq(0)").html();
+            $.ajax({
+                type: 'GET',
+                url: 'https://localhost:7227/api/Library/GetAllMembersById?memberId=' + memberId,
+                contentType: "application/json;charset=UTF-8",
+                dataType: 'json',
+                success: function (result) {
+                    console.log(result);
+                    var dateString = result.registrationDate;
+                    var registrationDate = new Date(dateString);
+                    var year = registrationDate.getFullYear();
+                    var month = String(registrationDate.getMonth() + 1).padStart(2, '0');
+                    var day = String(registrationDate.getDate()).padStart(2, '0');
+                    var formattedDate = year + '-' + month + '-' + day;
+                    $('#firstName').val(result.firstName);
+                    $('#lastName').val(result.lastName);
+                    $('#email').val(result.email);
+                    $('#phnNo').val(result.phoneNumber);
+                    $('#regiDate').val(formattedDate);
+                    $('#submit_btn').text('Update').off('click').on('click', function () {
+                        updateMember(memberId);
+                    });
+                    $('.AddEditModal').modal('show');
+                }
+            });
+        });
+    }
+    function updateMember(memberId) {
+        var updatedMemberData = {
+            MemberID: memberId,
+            FirstName: $("#firstName").val(),
+            LastName: $("#lastName").val(),
+            Email: $("#email").val(),
+            PhoneNumber: $("#phnNo").val(),
+            RegistrationDate: $("#regiDate").val(),
+
+        };
+        $.ajax({
+            type: 'POST',
+            url: 'https://localhost:7227/api/Library/UpdateMember',
+            contentType: 'application/json',
+            data: JSON.stringify(updatedMemberData),
+            success: function (response) {
+                alert(response);
+                $('#addEditModal').modal('hide');
+                window.location.reload();
+            },
+            error: function (error) {
+               
+            }
+        });
+    }
+    function deleteAuthor() {
+        $("#memberTable").on('click', '.delete-item', function () {
+
+            var currentRow = $(this).closest("tr");
+            var memberId = currentRow.find("td:eq(0)").html();
+            $.ajax({
+                type: 'DELETE',
+                url: 'https://localhost:7227/api/Library/DeleteMemberById?memberId=' + memberId,
+                contentType: 'application/json',
+                success: function (response) {
+                    alert(response);
+                    window.location.reload();
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    }
+
+
+</script>
+

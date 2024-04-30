@@ -1,0 +1,280 @@
+﻿@page
+@model Library_Management_System.Pages.Library.Book_ManageModel
+@{
+}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <button id="add_btn" type="button" data-toggle="modal" data-target=".AddEditModal" class="btn btn-success" value="Save">Add Book</button>
+        </div>
+    </div>
+
+    <br /><br />
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Books Table</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <table id="booksTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Book Id</th>
+                            <th>Title</th>
+                            <th>ISBN</th>
+                            <th>Published Date</th>
+                            <th>Available Copies</th>
+                            <th>Total Copies</th>
+                            <th>Author Name</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="booksTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <br /><br />
+
+</div>
+
+<div class="modal fade AddEditModal" tabindex="-1" id="AddEditModal" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-center" id="exampleModalLabel">Book Add/Edit </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <form>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Title</label>
+                                <input type="text" class="form-control" id="titel">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">ISBN</label>
+                                <input type="text" class="form-control" id="isbn">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Published Date</label>
+                                <input type="date" class="form-control" id="publishedDate">
+                            </div>
+                        </div>
+                    </div>  <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Available Copies</label>
+                                <textarea type="text" class="form-control" id="availableCopies"></textarea>
+                            </div>
+                        </div>
+                    </div>  <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">TotalCopies</label>
+                                <textarea type="text" class="form-control" id="totalCopies"></textarea>
+                            </div>
+                        </div>
+                    </div> 
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Author Name</label>
+                                <select id="authorDropdown" class="form-control">
+                                    <option value="">-- Select Author -- </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button id="submit_btn" type="button" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type: 'GET',
+            url: 'https://localhost:7227/api/Library/GetAllBooks',
+            success: function (allBookData) {
+                console.log(allBookData);
+                allBookData.forEach(function (book) {
+                    var row = '<tr>' +
+                        '<td>' + book.bookID + '</td>' +
+                        '<td>' + book.title + '</td>' +
+                        '<td>' + book.isbn + '</td>' +
+                        '<td>' + book.publishedDate + '</td>' +
+                        '<td>' + book.availableCopies + '</td>' +
+                        '<td>' + book.totalCopies + '</td>' +
+                        '<td>' + book.authors.authorName + '</td>' +
+                        '<td><button class="btn btn-primary edit-item" onclick = "edititem();">Edit</button><button class="btn btn-danger delete-item" id="dlt_btn" onclick = "deleteBook();">Delete</button></td>' +
+
+                        '</tr>';
+                    $('#booksTableBody').append(row);
+                });
+            },
+            error: function () { }
+        });
+        $('#add_btn').on('click', function () {
+            populateDropdowns();
+            $('#titel').val('');
+            $('#isbn').val('');
+            $('#publishedDate').val(''); 
+            $('#availableCopies').val('');
+            $('#totalCopies').val('');
+            $('#authorDropdown').val('');
+            $('#exampleModalLabel').text('Add Author');
+            $('#submit_btn').text('Save').off('click').on('click', function () {
+                createBook();
+            });
+            // $('#saveAuthorButton').off('click').on('click', createAuthor);
+            $('.AddEditModal').modal('show');
+        });
+
+
+    });
+    function createBook() {
+        var model = {
+            Title: $("#titel").val(),
+            ISBN: $("#isbn").val(),
+            PublishedDate: $("#publishedDate").val(),
+            AvailableCopies: $("#availableCopies").val(),
+            TotalCopies: $("#totalCopies").val(),
+            AuthorId: $("#authorDropdown").val(),
+
+        };
+        console.log(model);
+        $.ajax({
+            type: 'POST',
+            url: 'https://localhost:7227/api/Library/CreateBook',
+            contentType: 'application/json',
+            data: JSON.stringify(model),
+            success: function (response) {
+                alert(response);
+                window.location.reload();
+                document.getElementById("postform").reset();
+            },
+            error: function (xhr, status, error) {
+                console.error(xhr.responseText);
+            }
+        });
+    }
+    function edititem() {
+        $("#booksTable").on('click', '.edit-item', function () {
+            populateDropdowns();
+            var currentRow = $(this).closest("tr");
+            var bookId = currentRow.find("td:eq(0)").html();
+            $.ajax({
+                type: 'GET',
+                // url: 'http://localhost/LeaveManagement/api/Canteen/GetEmployeesByEmpID?empId=' + empId,
+                url: 'https://localhost:7227/api/Library/GetAllBooksById?bookId=' + bookId,
+                contentType: "application/json;charset=UTF-8",
+                dataType: 'json',
+                success: function (result) {
+                    console.log(result);
+                    var dateString = result.publishedDate;
+                    var publishedDate = new Date(dateString);
+                    var year = publishedDate.getFullYear();
+                    var month = String(publishedDate.getMonth() + 1).padStart(2, '0'); 
+                    var day = String(publishedDate.getDate()).padStart(2, '0');
+                    var formattedDate = year + '-' + month + '-' + day;
+                    $('#titel').val(result.title);
+                    $('#isbn').val(result.isbn);
+                    $('#publishedDate').val(formattedDate);
+                    $('#availableCopies').val(result.availableCopies);
+                    $('#totalCopies').val(result.totalCopies);
+                    $('#authorDropdown').val(result.authorID);
+                    $('#submit_btn').text('Update').off('click').on('click', function () {
+                        updateBook(bookId);
+                    });
+                    $('.AddEditModal').modal('show');
+                }
+            });
+        });
+    }
+    function updateBook(bookId) {
+        var updatedBookData = {
+            BookID: bookId,
+            Title: $('#titel').val(),
+            ISBN: $('#isbn').val(),
+            PublishedDate: $('#publishedDate').val(),
+            AvailableCopies: $('#availableCopies').val(),
+            TotalCopies: $('#totalCopies').val(),
+            AuthorId: $("#authorDropdown").val(),
+        };
+        $.ajax({
+            type: 'POST',
+            url: 'https://localhost:7227/api/Library/UpdateBook',
+            contentType: 'application/json',
+            data: JSON.stringify(updatedBookData),
+            success: function (response) {
+                alert(response);
+                $('#addEditModal').modal('hide');
+                window.location.reload();
+            },
+            error: function (error) {
+               
+            }
+        });
+    }
+    function deleteBook() {
+        $("#booksTable").on('click', '.delete-item', function () {
+
+            var currentRow = $(this).closest("tr");
+            var bookId = currentRow.find("td:eq(0)").html();
+            $.ajax({
+                type: 'DELETE',
+                url: 'https://localhost:7227/api/Library/DeleteAuthorById?authorId=' + bookId,
+                contentType: 'application/json',
+                success: function (response) {
+                    alert(response);
+                    window.location.reload();
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    }
+    function populateDropdowns() {
+        $('#authorDropdown').empty();
+        $.ajax({
+            url: 'https://localhost:7227/api/Library/GetAllAuthors',
+            method: 'GET',
+            success: function (response) {
+                console.log('API response:', response);
+                var authorDropdown = $("#authorDropdown");
+               
+                authorDropdown.append($('<option></option>').val('').html('-- Select Author --'));
+                $.each(response, function (index, el) {
+                    authorDropdown.append($('<option></option>').val(el.authorID).html(el.authorName));
+                });
+               
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    }
+
+</script>

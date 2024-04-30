@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Library_Management_System</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Library_Management_System.styles.css" asp-append-version="true" />
+    <style>
+        .hidden-navbar {
+            display: none;
+        }
+        li{
+           color:darkblue;
+            font-weight: bold;
+            font-style:italic;
+        }
+    </style>
+</head>
+<body>
+    @if (!Context.Request.Path.StartsWithSegments("/User/Login") && !Context.Request.Path.StartsWithSegments("/User/Register") && !Context.Request.Path.StartsWithSegments("/User/Register_Admin") && !Context.Request.Path.StartsWithSegments("/Index"))
+    {
+        <header>
+            <nav style="background-color:aliceblue" class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light  border-bottom box-shadow mb-3">
+                <div class="container">
+                    <a style="font-weight:bold" class="navbar-brand" asp-area="" asp-page="/Index">Library Management System</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1">
+                            @if (!Context.Request.Path.StartsWithSegments("/Member/Member_View"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link " asp-area="" asp-page="/Index">Home</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a  class="nav-link" asp-area="" asp-page="/Library/Authors_Manage">Author Manage</a>
+                                </li><li class="nav-item">
+                                    <a class="nav-link " asp-area="" asp-page="/Library/Book_Manage">Book Manage</a>
+                                </li><li class="nav-item">
+                                    <a class="nav-link " asp-area="" asp-page="/Library/Member_Manage">Member Manage</a>
+                                </li><li class="nav-item">
+                                    <a class="nav-link " asp-area="" asp-page="/Library/BorrowedBook_Manage">Check Borrow History</a>
+                                </li>
+                            }
+                                <li class="nav-item">
+                                    <a class="nav-link " asp-area="" asp-page="/User/Login">Logout</a>
+                                </li>
+                           
+                        </ul>
+                    </div>
+
+                </div>
+            </nav>
+        </header>
+     
+
+        <footer class="border-top footer text-muted">
+            <div class="container">
+            &copy; 2024 - Library_Management_System - <a asp-area="" asp-page="/Privacy">Privacy</a>
+        </div>
+    </footer>
+    }
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

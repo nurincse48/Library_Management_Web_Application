@@ -1,0 +1,311 @@
+﻿@page
+@model Library_Management_System.Pages.Library.BorrowedBookModel
+@{
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <button id="add_btn" type="button" data-toggle="modal" data-target=".AddEditModal" class="btn btn-success" value="Save">Add Borrowed Book</button>
+        </div>
+    </div>
+
+    <br /><br />
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Borrowed Books Table</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <table id="borrowedBookTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Borrow ID</th>
+                            <th>Borrowed No</th>
+                            <th>Member Name</th>
+                            <th>Book Title</th>
+                            <th>Borrow Date</th>
+                            <th>Return Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="borrowedBookTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <br /><br />
+
+</div>
+
+<div class="modal fade AddEditModal" tabindex="-1" id="AddEditModal" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-center" id="exampleModalLabel">Borrowed Book Add/Edit </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <form>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Borrowed No</label>
+                                <input type="text" class="form-control" id="borrowedNo" placeholder="B001"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Member Name</label>
+                                <select id="memberDropdown" class="form-control">
+                                    <option value="">-- Select Member -- </option>
+                                </select>
+                               
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Book Title</label>
+                                <select id="bookDropdown" class="form-control">
+                                    <option value="">-- Select Book -- </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>  <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Borrow Date</label>
+                                <input type="date" class="form-control" id="borrowedDate">
+                            </div>
+                        </div>
+                    </div>  <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Return Date</label>
+                                <input type="date" class="form-control" id="returnDate">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">Status</label>
+                                <select id="statusDropdown" class="form-control">
+                                    <option value="">-- Select Status -- </option>
+                                    <option value="Borrowed"> Borrowed </option>
+                                    <option value="Returned"> Returned </option>
+                                    <option value="Overdue"> Overdue </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button id="submit_btn" type="button" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type: 'GET',
+            url: 'https://localhost:7227/api/Library/GetAllBorrowdBook',
+            success: function (allBorrowdBookData) {
+                console.log(allBorrowdBookData);
+                allBorrowdBookData.forEach(function (borrowedbook) {
+                    var row = '<tr>' +
+                        '<td>' + borrowedbook.borrowID + '</td>' +
+                        '<td>' + borrowedbook.borrowedNo + '</td>' +
+                        '<td>' + borrowedbook.members.firstName + " " + borrowedbook.members.lastName + '</td>' +
+                        '<td>' + borrowedbook.books.title + '</td>' +
+                        '<td>' + borrowedbook.borrowDate + '</td>' +
+                        '<td>' + borrowedbook.returnDate + '</td>' +
+                        '<td>' + borrowedbook.status + '</td>' +
+                        '<td><button class="btn btn-primary edit-item" onclick = "edititem();">Edit</button><button class="btn btn-danger delete-item" id="dlt_btn" onclick = "deleteBorrowedBook();">Delete</button></td>' +
+
+                        '</tr>';
+                    $('#borrowedBookTableBody').append(row);
+                });
+            },
+            error: function () { }
+        });
+        $('#add_btn').on('click', function () {
+            populateDropdowns();
+            $('#borrowedNo').val('');
+            $('#memberDropdown').val('');
+            $('#bookDropdown').val('');
+            $('#borrowedDate').val('');
+            $('#returnDate').val('');
+            $('#statusDropdown').val('');
+            $('#exampleModalLabel').text('Add Author');
+            $('#submit_btn').text('Save').off('click').on('click', function () {
+                createBorrowedBook();
+            });
+            $('.AddEditModal').modal('show');
+        });
+
+
+    });
+    function createBorrowedBook() {
+        var model = {
+            BorrowedNo: $("#borrowedNo").val(),
+            MemberID: $("#memberDropdown").val(),
+            BookID: $("#bookDropdown").val(),
+            BorrowDate: $("#borrowedDate").val(),
+            ReturnDate: $("#returnDate").val(),
+            Status: $("#statusDropdown").val(),
+
+        };
+        console.log(model);
+        $.ajax({
+            type: 'POST',
+            url: 'https://localhost:7227/api/Library/CreateBorrowdBook',
+            contentType: 'application/json',
+            data: JSON.stringify(model),
+            success: function (response) {
+                alert(response);
+                window.location.reload();
+                document.getElementById("postform").reset();
+            },
+            error: function (xhr, status, error) {
+                console.error(xhr.responseText);
+            }
+        });
+    }
+    function edititem() {
+        $("#borrowedBookTable").on('click', '.edit-item', function () {
+            populateDropdowns();
+            var currentRow = $(this).closest("tr");
+            var borrowedBookId = currentRow.find("td:eq(0)").html();
+            $.ajax({
+                type: 'GET',
+                url: 'https://localhost:7227/api/Library/GetAllBorrowdBookById?borrowdBookId=' + borrowedBookId,
+                contentType: "application/json;charset=UTF-8",
+                dataType: 'json',
+                success: function (result) {
+                    console.log(result);
+                    var dateString1 = result.borrowedDate;
+                    var dateString2 = result.returnDate;
+                    var borrowedDate = new Date(dateString1); 
+                    var returnDate = new Date(dateString2);
+                    var borrowedDate_year = borrowedDate.getFullYear();
+                    var borrowedDate_month = String(borrowedDate.getMonth() + 1).padStart(2, '0');
+                    var borrowedDate_day = String(borrowedDate.getDate()).padStart(2, '0');
+                    var borrowedDate_formattedDate = borrowedDate_year + '-' + borrowedDate_month + '-' + borrowedDate_day;
+                    var returnDate_year = returnDate.getFullYear();
+                    var returnDate_month = String(returnDate.getMonth() + 1).padStart(2, '0');
+                    var returnDate_day = String(returnDate.getDate()).padStart(2, '0');
+                    var returnDate_formattedDate = returnDate_year + '-' + returnDate_month + '-' + returnDate_day;
+                    $('#borrowedNo').val(result.borrowedNo);
+                    $('#memberDropdown').val(result.memberID);
+                    $('#bookDropdown').val(result.bookID);
+                    $('#borrowedDate').val(borrowedDate_formattedDate);
+                    $('#returnDate').val(result.returnDate_formattedDate);
+                    $('#statusDropdown').val(result.status);
+                    $('#submit_btn').text('Update').off('click').on('click', function () {
+                        updateBorrowedBook(borrowedBookId);
+                    });
+                    $('.AddEditModal').modal('show');
+                }
+            });
+        });
+    }
+    function updateBorrowedBook(bookId) {
+        var updatedBookData = {
+            BorrowID: bookId,
+            BorrowedNo: $("#borrowedNo").val(),
+            MemberID: $("#memberDropdown").val(),
+            BookID: $("#bookDropdown").val(),
+            BorrowDate: $("#borrowedDate").val(),
+            ReturnDate: $("#returnDate").val(),
+            Status: $("#statusDropdown").val(),
+        };
+        $.ajax({
+            type: 'POST',
+            url: 'https://localhost:7227/api/Library/UpdateBorrowdBook',
+            contentType: 'application/json',
+            data: JSON.stringify(updatedBookData),
+            success: function (response) {
+                alert(response);
+                $('#addEditModal').modal('hide');
+                window.location.reload();
+            },
+            error: function (error) {
+
+            }
+        });
+    }
+    function deleteBorrowedBook() {
+        $("#borrowedBookTable").on('click', '.delete-item', function () {
+
+            var currentRow = $(this).closest("tr");
+            var borrowedBookId = currentRow.find("td:eq(0)").html();
+            $.ajax({
+                type: 'DELETE',
+                url: 'https://localhost:7227/api/Library/DeleteBorrowdBookById?borrowedBookId=' + borrowedBookId,
+                contentType: 'application/json',
+                success: function (response) {
+                    alert(response);
+                    window.location.reload();
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    }
+    function populateDropdowns() {
+        $('#memberDropdown').empty();
+        $('#bookDropdown').empty();
+        $.ajax({
+            url: 'https://localhost:7227/api/Library/GetAllMembers',
+            method: 'GET',
+            success: function (response) {
+                console.log('API response:', response);
+                var memberDropdown = $("#memberDropdown");
+                memberDropdown.append($('<option></option>').val('').html('-- Select Member --'));
+                $.each(response, function (index, el) {
+                    memberDropdown.append($('<option></option>').val(el.memberID).html(el.firstName + " " + el.lastName));
+                });
+
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        }); 
+        $.ajax({
+            url: 'https://localhost:7227/api/Library/GetAllBooks',
+            method: 'GET',
+            success: function (response) {
+                console.log('API response:', response);
+                var bookDropdown = $("#bookDropdown");
+
+                bookDropdown.append($('<option></option>').val('').html('-- Select Book --'));
+                $.each(response, function (index, el) {
+                    bookDropdown.append($('<option></option>').val(el.bookID).html(el.title));
+                });
+
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    }
+
+</script>
+

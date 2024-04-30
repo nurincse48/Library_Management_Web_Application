@@ -1,0 +1,80 @@
+﻿@page
+@model Library_Management_System.Pages.User.RegisterModel
+@{
+}
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<style>
+    /* Custom style to center the registration form container */
+    .register-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh; /* Adjust as needed */
+    }
+
+    /* Style for the registration form */
+    #registerForm {
+        height: 300px;
+        width: 400px;
+        background-color: lightblue;
+        border-radius: 5px;
+    }
+</style>
+
+<div class="register-container">
+    <!-- Centering container -->
+    <div class="text-center mx-auto">
+        <h1>Register</h1>
+        <div class="container">
+        <form class="col-md-6" id="registerForm">
+            <label for="username">Username:</label>
+            <input class="form-control" type="text" id="username" name="username" required><br><br>
+
+            <label for="email">Email:</label>
+            <input class="form-control" type="email" id="email" name="email" required><br><br>
+
+            <label for="password">Password:</label>
+            <input class="form-control" type="password" id="password" name="password" required><br><br>
+
+            <button class="btn btn-success" id="register_btn" type="submit">Register</button>
+        </form>
+        </div>
+    </div>
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#register_btn').on('click', function (event) {
+            event.preventDefault();
+            var model = {
+                Username: $("#username").val(),
+                Email: $("#email").val(),
+                Password: $("#password").val()
+            };
+
+            console.log(model);
+
+            $.ajax({
+                type: 'POST',
+                url: 'https://localhost:7227/register',
+                contentType: 'application/json',
+                data: JSON.stringify(model),
+                success: function (response) {
+                    alert(response.message);
+                    if (response.status == 'Success') {
+                        window.location.href = '/User/Login';
+                    } else {
+                        window.location.reload();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                    alert('Login failed. Please check your credentials and try again.');
+                }
+            });
+        });
+    });
+    
+
+</script>
